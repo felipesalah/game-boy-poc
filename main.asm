@@ -10,6 +10,7 @@
 ;--------------------------------------------------------
 	.globl _main
 	.globl _set_sprite_data
+	.globl _joypad
 	.globl _delay
 	.globl _Smiler
 ;--------------------------------------------------------
@@ -111,8 +112,6 @@ _Smiler::
 ; Function main
 ; ---------------------------------
 _main::
-;main.c:6: UINT8 currentSpriteIndex = 0;
-	ld	c, #0x00
 ;main.c:7: set_sprite_data(0, 2, Smiler);
 	ld	hl, #_Smiler
 	push	hl
@@ -138,37 +137,78 @@ _main::
 	or	a, #0x02
 	ldh	(_LCDC_REG+0),a
 ;main.c:12: while(1) {
-00105$:
-;main.c:13: if (currentSpriteIndex == 0) {
-	ld	a, c
-	or	a, a
-;main.c:14: currentSpriteIndex = 1;
-;main.c:16: currentSpriteIndex = 0;
-	ld	c, #0x01
+00107$:
+;main.c:13: switch(joypad()) {
+	call	_joypad
+	ld	a, e
+	dec	a
+	jr	Z, 00102$
+	ld	a,e
+	cp	a,#0x02
+	jr	Z, 00101$
+	cp	a,#0x04
 	jr	Z, 00103$
-	ld	c, #0x00
+	sub	a, #0x08
+	jr	Z, 00104$
+	jr	00105$
+;main.c:14: case J_LEFT:
+00101$:
+;c:/gbdk/include/gb/gb.h:1088: OAM_item_t * itm = &shadow_OAM[nb];
+	ld	bc, #_shadow_OAM+0
+;c:/gbdk/include/gb/gb.h:1089: itm->y+=y, itm->x+=x;
+	ld	a, (bc)
+	ld	(bc), a
+	inc	bc
+	ld	a, (bc)
+	add	a, #0xf6
+	ld	(bc), a
+;main.c:16: break;
+	jr	00105$
+;main.c:17: case J_RIGHT:
+00102$:
+;c:/gbdk/include/gb/gb.h:1088: OAM_item_t * itm = &shadow_OAM[nb];
+	ld	bc, #_shadow_OAM
+;c:/gbdk/include/gb/gb.h:1089: itm->y+=y, itm->x+=x;
+	ld	a, (bc)
+	ld	(bc), a
+	inc	bc
+	ld	a, (bc)
+	add	a, #0x0a
+	ld	(bc), a
+;main.c:19: break;
+	jr	00105$
+;main.c:20: case J_UP:
 00103$:
-;c:/gbdk/include/gb/gb.h:999: shadow_OAM[nb].tile=tile;
-	ld	hl, #(_shadow_OAM + 0x0002)
-	ld	(hl), c
-;main.c:19: delay(1000);
-	push	bc
-	ld	hl, #0x03e8
+;c:/gbdk/include/gb/gb.h:1088: OAM_item_t * itm = &shadow_OAM[nb];
+	ld	bc, #_shadow_OAM
+;c:/gbdk/include/gb/gb.h:1089: itm->y+=y, itm->x+=x;
+	ld	a, (bc)
+	add	a, #0xf6
+	ld	(bc), a
+	inc	bc
+	ld	a, (bc)
+	ld	(bc), a
+;main.c:22: break;
+	jr	00105$
+;main.c:23: case J_DOWN:
+00104$:
+;c:/gbdk/include/gb/gb.h:1088: OAM_item_t * itm = &shadow_OAM[nb];
+	ld	bc, #_shadow_OAM
+;c:/gbdk/include/gb/gb.h:1089: itm->y+=y, itm->x+=x;
+	ld	a, (bc)
+	add	a, #0x0a
+	ld	(bc), a
+	inc	bc
+	ld	a, (bc)
+	ld	(bc), a
+;main.c:26: }
+00105$:
+;main.c:27: delay(100);
+	ld	hl, #0x0064
 	push	hl
 	call	_delay
 	add	sp, #2
-	pop	bc
-;c:/gbdk/include/gb/gb.h:1088: OAM_item_t * itm = &shadow_OAM[nb];
-	ld	de, #_shadow_OAM+0
-;c:/gbdk/include/gb/gb.h:1089: itm->y+=y, itm->x+=x;
-	ld	a, (de)
-	ld	(de), a
-	inc	de
-	ld	a, (de)
-	add	a, #0x0a
-	ld	(de), a
-;main.c:20: scroll_sprite(0, 10, 0);
-;main.c:22: }
-	jr	00105$
+;main.c:29: }
+	jr	00107$
 	.area _CODE
 	.area _CABS (ABS)

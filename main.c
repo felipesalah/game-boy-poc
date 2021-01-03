@@ -1,5 +1,5 @@
-#include <gb/gb.h>
 #include <stdio.h>
+#include <gb/gb.h>
 #include "SmileSprite.c"
 
 void main() {
@@ -10,13 +10,20 @@ void main() {
     SHOW_SPRITES;
 
     while(1) {
-        if (currentSpriteIndex == 0) {
-            currentSpriteIndex = 1;
-        } else {
-            currentSpriteIndex = 0;
+        switch(joypad()) {
+            case J_LEFT:
+                scroll_sprite(0, -10, 0);
+                break;
+            case J_RIGHT:
+                scroll_sprite(0 , 10, 0);
+                break;
+            case J_UP:
+                scroll_sprite(0, 0, -10);
+                break;
+            case J_DOWN:
+                scroll_sprite(0, 0, 10);
+                break;
         }
-        set_sprite_tile(0, currentSpriteIndex);
-        delay(1000);
-        scroll_sprite(0, 10, 0);
+        delay(100);
     }
 }
