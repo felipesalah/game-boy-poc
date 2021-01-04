@@ -24,6 +24,6 @@ void main() {
                 scroll_sprite(0, 0, 10);
                 break;
         }
-        delay(100);
+        delay(10);
     }
 }
